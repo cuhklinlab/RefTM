@@ -3,7 +3,7 @@ R package for RefTM
 # Install
 ```
 install.packages("devtools")
-devtools::install_github("zzchr1s/RefTM")
+devtools::install_github("cuhklinlab/RefTM")
 ```
 # Functions
 This package includes following main functions:
@@ -15,4 +15,4 @@ This package includes following main functions:
 - `RefTM_motif` runs motif enrichment based on the output of RefTM.
 
 # Documentation
-Please check the [vigenette](https://github.com/zzchr1s/RefTM/wiki) for a tutorial.
+Please check the [vigenette](https://github.com/cuhklinlab/RefTM/wiki) for a tutorial.
