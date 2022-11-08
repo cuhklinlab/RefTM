@@ -55,9 +55,9 @@ lda_svi <- function(dtm,passes=1,batchsize=256,maxiter=100,K,K0 = 0,alpha=1/K,ka
 	  theta[i,] <- theta[i,]/sum(theta[i,])
 	}
 
-	#for (i in seq(1,nrow(beta))){
-	  #beta[i,] <- beta[i,]/sum(beta[i,])
-	#}
+	for (i in seq(1,nrow(beta))){
+	  beta[i,] <- beta[i,]/sum(beta[i,])
+	}
 
 
 
