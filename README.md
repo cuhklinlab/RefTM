@@ -9,7 +9,6 @@ devtools::install_github("cuhklinlab/RefTM")
 This package includes following main functions:
 - `RefTM` runs RefTM for the analysis of single-cell chromatin accessibility sequencing data. 
 - `RefTM_postprocess` postprocess the result to obtain a final cell-by-topic matrix as the output of RefTM.
-- `RefTM_tsne` visualize the output of RefTM via a t-SNE plot.
 - `RefTM_motif` runs motif enrichment based on the output of RefTM.
 
 # Documentation
