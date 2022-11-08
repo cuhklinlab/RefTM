@@ -1,3 +1,4 @@
+#' @export
 
 RefTM.LDA <- function(sc_data, k1 = 5, k2 = NULL, workflow = "LDA", covariate = NULL, refBeta){
   docvoc2dtm = function(doc_voc){

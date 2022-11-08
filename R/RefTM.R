@@ -1,3 +1,5 @@
+#' @export
+
 RefTM <- function(sc_data, ref_data, k1 = 5, k2 = NULL, workflow = "LDA", covariate = NULL){
   docvoc2dtm = function(doc_voc){
     if(length(which(colSums(doc_voc) == 0))>0){
