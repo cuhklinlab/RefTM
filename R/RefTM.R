@@ -35,7 +35,7 @@ RefTM <- function(sc_data, ref_data, k1 = 5, k2 = NULL, workflow = "LDA", covari
     print("Finished modeling the reference data.")
     if(!is.null(k2)){
       print(k2)
-      sprintf("Number of topics is fixed to be %s.", k1+5)
+      sprintf("Number of topics is fixed to be %s.", k1+k2)
       if(length(which(rowSums(sc_data) == 0)) != 0){
         model_sc = lda_svi(docvoc2dtm(t(sc_data)),batchsize = 100,K = k1+k2,K0 = k1,maxiter = 1000,refBeta = exp(model_ref@beta[,-which(rowSums(sc_data) == 0)]),passes = 2)
       }else{
@@ -48,9 +48,9 @@ RefTM <- function(sc_data, ref_data, k1 = 5, k2 = NULL, workflow = "LDA", covari
       perplex <- c()
       for (i in 1:6) {
         if(length(which(rowSums(sc_data) == 0)) != 0){
-          models[[i]] = lda_svi(docvoc2dtm(t(sc_data)),batchsize = 100,K = k,K0 = k1,maxiter = 1000,refBeta = exp(model_ref@beta[,-which(rowSums(sc_data) == 0)]),passes = 2)
+          models[[i]] = lda_svi(docvoc2dtm(t(sc_data)),batchsize = 100,K = k[i],K0 = k1,maxiter = 1000,refBeta = exp(model_ref@beta[,-which(rowSums(sc_data) == 0)]),passes = 2)
         }else{
-          models[[i]] = lda_svi(docvoc2dtm(t(sc_data)),batchsize = 100,K = k,K0 = k1,maxiter = 1000,refBeta = exp(model_ref@beta),passes = 2)
+          models[[i]] = lda_svi(docvoc2dtm(t(sc_data)),batchsize = 100,K = k[i],K0 = k1,maxiter = 1000,refBeta = exp(model_ref@beta),passes = 2)
         }
         perplex[i] <- perplexity(as(t(sc_data),"sparseMatrix"),models[[i]]$beta,models[[i]]$theta)
 
@@ -83,8 +83,8 @@ RefTM <- function(sc_data, ref_data, k1 = 5, k2 = NULL, workflow = "LDA", covari
     model_ref <- RefTM.STM(getCorpus(ref_data), as.character(1:dim(ref_data)[2]), K = k1)
     print("Finished modeling the reference data.")
     if(!is.null(k2)){
-      sprintf("Number of topics is fixed to be %s.", k1+5)
-      model_sc <- RefTM.STM(getCorpus(t(sc_data)), as.character(1:dim(sc_data)[1]), K = k1+5, prevalence = ~covariate, refBeta = exp(model_ref$beta$logbeta[[1]]))
+      sprintf("Number of topics is fixed to be %s.", k1+k2)
+      model_sc <- RefTM.STM(getCorpus(t(sc_data)), as.character(1:dim(sc_data)[1]), K = k1+k2, prevalence = ~covariate, refBeta = exp(model_ref$beta$logbeta[[1]]))
     }else{
       print("Select the best model.")
       perp = function(model){
