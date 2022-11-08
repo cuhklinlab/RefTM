@@ -10,7 +10,7 @@ using namespace Rcpp;
 using namespace std;
 
 // [[Rcpp::export]]
-List lda_online_cpp(IntegerVector doc_ids,IntegerVector terms,IntegerVector counts,int K,int K0,int passes,int batchsize,int maxiter,double tau_0,double kappa,double eta,double alpha,NumericMatrix refLambda){
+List lda_online_cpp(IntegerVector doc_ids,IntegerVector terms,IntegerVector counts,int K,int K0,int passes,int batchsize,int maxiter,double tau_0,double kappa,double alpha,NumericMatrix refBeta){
 	
 	int n = doc_ids.size();
 	unordered_map<int,unordered_map<int,int>> dtm;
@@ -23,10 +23,10 @@ List lda_online_cpp(IntegerVector doc_ids,IntegerVector terms,IntegerVector coun
 
 	int V = sort_unique(terms).size();
 
-	LDA_State lda(D,V,K,K0,dtm,eta,alpha,refLambda);
-                
-	lda.fit_model(passes,batchsize,maxiter,tau_0,kappa, refLambda);
+	LDA_State lda(D,V,K,K0, dtm,alpha,refBeta);
 
-	return List::create(Rcpp::Named("Lambda")=lda.lambda,Rcpp::Named("Gamma")=lda.gamma);
+	lda.fit_model(passes,batchsize,maxiter,tau_0,kappa,refBeta);
+
+	return List::create(Rcpp::Named("Beta")=lda.beta,Rcpp::Named("Gamma")=lda.gamma);
 
 }

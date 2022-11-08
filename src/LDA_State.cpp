@@ -12,48 +12,39 @@
 using namespace std;
 using namespace Rcpp;
 
-LDA_State::LDA_State(int n_docs,int vocab_size,int n_topics,int n_topics_ref,std::unordered_map<int,std::unordered_map<int,int>> &data,double eta_val,double alpha_val, Rcpp::NumericMatrix refLambda){
+LDA_State::LDA_State(int n_docs,int vocab_size,int n_topics,int n_topics_ref,std::unordered_map<int,std::unordered_map<int,int>> &data,double alpha_val, Rcpp::NumericMatrix refBeta){
 	D=n_docs;
 	V=vocab_size;
 	K=n_topics;
                 K0 = n_topics_ref;
 	dtm = data;
-	refLambda= refLambda;
-
+	refBeta= refBeta;
+	
 	t=0;
 
-	eta = eta_val;
 	alpha = alpha_val;
-
+                 
+                beta = arma::mat(K,V);
 	gamma = arma::mat(D,K);
-	lambda = arma::mat(K,V); 
+                	
+                arma::mat tmp = Rcpp::as<arma::mat>(refBeta);
+                for (int i=0;i<K;i++){
+	          beta.row(i) = tmp.row(i);
+	}
+                arma::colvec betaRowSum =  arma::sum(beta, 1);
+                for (int i=0; i<K; i++){
+                         beta.row(i) = beta.row(i)/betaRowSum(i);
+                }
 
-	Elogbeta = arma::mat(K,V);
-	expElogbeta = arma::mat(K,V);
-	
-	for (auto &elem:gamma){
+                for (auto &elem:gamma){
 		elem = 0;
 	}
-	for (auto &elem:lambda){
-		elem = R::rgamma(100,0.01);
-	}
 
-	for (int i=0;i<K;i++){
-		Elogbeta.row(i) = dirichlet_expectation(lambda.row(i));
-		expElogbeta.row(i) = arma::exp(Elogbeta.row(i));
-	}
-               
-               if (K0 !=0){
-                          arma::mat tmp = Rcpp::as<arma::mat>(refLambda);
-                          for (int i=0;i<K0;i++){
-		Elogbeta.row(i) = dirichlet_expectation(tmp.row(i));
-		expElogbeta.row(i) = arma::exp(Elogbeta.row(i));
-	          }
-               }
-                
+
+
 }
 
-void LDA_State::update_minibatch(std::vector<int> documents,int maxiter,double tau_0,double kappa, Rcpp::NumericMatrix refLambda){
+void LDA_State::update_minibatch(std::vector<int> documents,int maxiter,double tau_0,double kappa, Rcpp::NumericMatrix refBeta){
 
 	t++;
 
@@ -123,22 +114,22 @@ void LDA_State::update_minibatch(std::vector<int> documents,int maxiter,double t
 	    word_indices[i] = static_cast<unsigned int>(word_ids[i]);
 	  }
 	  
-	  arma::mat expElogbeta_d = expElogbeta.cols(word_indices);
+	  arma::mat beta_d = beta.cols(word_indices);
 
-	  arma::rowvec phinorm = expElogtheta_d * expElogbeta_d + 1e-100;
+	  arma::rowvec phinorm = expElogtheta_d * beta_d + 1e-100;
 
 		for(int i=0;i<maxiter;i++){
-		  
+		  checkUserInterrupt();
 
 		  arma::rowvec gamma_d_old = gamma_d;
 
-		  gamma_d = alpha + (expElogtheta_d % ((word_cts_vec/phinorm) * expElogbeta_d.t()));
+		  gamma_d = alpha + (expElogtheta_d % ((word_cts_vec/phinorm) * beta_d.t()));
 
 		  Elogtheta_d = dirichlet_expectation(gamma_d);
 
 		  expElogtheta_d = arma::exp(Elogtheta_d);
 
-		  phinorm = expElogtheta_d * expElogbeta_d + 1e-100;
+		  phinorm = expElogtheta_d * beta_d + 1e-100;
 
 		  mean_abs_change = arma::mean(arma::abs(gamma_d - gamma_d_old));
 		  if (i==i && R::runif(0,1) < 0.001){
@@ -146,7 +137,7 @@ void LDA_State::update_minibatch(std::vector<int> documents,int maxiter,double t
 		  }
 
 		}	
-		
+		checkUserInterrupt();
 		
 
 	gamma.row(doc_id) = gamma_d;
@@ -155,28 +146,25 @@ void LDA_State::update_minibatch(std::vector<int> documents,int maxiter,double t
 
 	}
 	
-	sufficient_statistics = sufficient_statistics % expElogbeta;
+	sufficient_statistics = sufficient_statistics % beta;
 	
-	//update word-topic matrix lambda
+	//update word-topic matrix beta
 	
-	lambda = lambda * (1-rho_t) + rho_t * (eta + D*sufficient_statistics/batchsize);
-                
+	beta= beta * (1-rho_t) + rho_t * (D*sufficient_statistics/batchsize);
                 if (K0 !=0){
-                          arma::mat tmp = Rcpp::as<arma::mat>(refLambda);
+                          arma::mat tmp = Rcpp::as<arma::mat>(refBeta);
                           for (int i=0;i<K0;i++){
-		lambda.row(i) = tmp.row(i);
+		beta.row(i) = tmp.row(i);
 	          }
-               }
-
-	for (int i = 0 ;i< K ;i++){
-		Elogbeta.row(i) = dirichlet_expectation(lambda.row(i));
-		expElogbeta.row(i) = arma::exp(Elogbeta.row(i));
-	}
-	
+                }
+                arma::colvec betaRowSum =  arma::sum(beta, 1);
+                for (int i=0; i<K; i++){
+                         beta.row(i) = beta.row(i)/betaRowSum(i);
+                }
 
 }
 
-void LDA_State::fit_model(int passes,int batchsize,int maxiter,double tau_0,double kappa, Rcpp::NumericMatrix refLambda){
+void LDA_State::fit_model(int passes,int batchsize,int maxiter,double tau_0,double kappa, Rcpp::NumericMatrix refBeta){
 	
 	for (int i=0;i<passes;i++){
 
@@ -193,10 +181,10 @@ void LDA_State::fit_model(int passes,int batchsize,int maxiter,double tau_0,doub
 			if (docs.size() >= batchsize){
 				std::vector<int> minibatch(docs.end() - batchsize,docs.end());
 				docs.erase(docs.end() - batchsize,docs.end());
-				update_minibatch(minibatch,maxiter,tau_0,kappa,refLambda);
+				update_minibatch(minibatch,maxiter,tau_0,kappa,refBeta);
 			}
 			else {
-				update_minibatch(docs,maxiter,tau_0,kappa,refLambda);
+				update_minibatch(docs,maxiter,tau_0,kappa,refBeta);
 				docs.erase(docs.begin(),docs.end());
 			}
 			batches++;

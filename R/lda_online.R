@@ -4,7 +4,6 @@
 #' @param passes How many times we look at each document.
 #' @param batchsize The size of the minibatches.
 #' @param maxiter The maximum iterations for the "E step" for each document (the updating of the per-document parameters within each minibatch). The default of 100 follows the reference implementation in python by the authors.
-#' @param eta hyperparameter for the term
 #' @param alpha hyperparameter.
 #' @param kappa learning rate parameter. Lower values give greater weight to later iterations. For guaranteed convergence to a local optimum, kappa must lie in the interval (0.5,1].
 #' @param tau_0 learning rate parameter. Higher values reduce the influence of early iterations.
@@ -12,7 +11,7 @@
 #' @importFrom methods is
 #' @export
 
-lda_svi <- function(dtm,passes=1,batchsize=256,maxiter=100,K,K0 = 0,eta=1/K,alpha=1/K,kappa=0.7,tau_0=1024,refLambda=NULL){
+lda_svi <- function(dtm,passes=1,batchsize=256,maxiter=100,K,K0 = 0,alpha=1/K,kappa=0.7,tau_0=1024,refBeta=NULL){
 
 	if (is(dtm,"DocumentTermMatrix")){
 		if (!any(attr(dtm,'weighting') %in% c('term frequency','tf'))){
@@ -28,38 +27,39 @@ lda_svi <- function(dtm,passes=1,batchsize=256,maxiter=100,K,K0 = 0,eta=1/K,alph
 
 	counts <- dtm$v
 
-	if(K0 == 0){
-	  refLambda= matrix(0,K0,dtm$ncol)
-	}
+	tmp = matrix(1/dtm$ncol,K,dtm$ncol)
 
-	res_list <- lda_online_cpp(doc_ids,term_ids,counts,K,K0,passes,batchsize,maxiter=maxiter,eta=eta,alpha=alpha,tau_0=tau_0,kappa=kappa,refLambda = refLambda)
+	if(K0 != 0){
+	  tmp[1:K0,] = refBeta
+	}
+	refBeta = tmp
+
+	res_list <- lda_online_cpp(doc_ids,term_ids,counts,K,K0,passes,batchsize,maxiter=maxiter,alpha=alpha,tau_0=tau_0,kappa=kappa,refBeta = refBeta)
 
 	gamma <- res_list$Gamma
-	lambda <- res_list$Lambda
+	beta <- res_list$Beta
 
 	colnames(gamma) <- seq(1:ncol(gamma))#topic labels
 	rownames(gamma) <- unique(docs)
 
-	colnames(lambda) <- unique(terms)
-	rownames(lambda) <- seq(1:nrow(lambda))
+	colnames(beta) <- unique(terms)
+	rownames(beta) <- seq(1:nrow(beta))
 
 	# convert variational parameters to model parameters
 	# (this follows from equation 2 in the paper)
 	# Noting that the expectation of a Dirichlet(a) rv is a/sum(a)
 
 	theta <- gamma
-	beta <- lambda
 
 	for (i in seq(1,nrow(gamma))){
 	  theta[i,] <- theta[i,]/sum(theta[i,])
 	}
 
-	for (i in seq(1,nrow(lambda))){
-	  beta[i,] <- lambda[i,]/sum(lambda[i,])
-	}
+	#for (i in seq(1,nrow(beta))){
+	  #beta[i,] <- beta[i,]/sum(beta[i,])
+	#}
 
-	#theta <- reshape2::melt(theta)
-	#beta <- reshape2::melt(beta)
 
-	list('theta'=theta,'beta'=beta,'gamma'=gamma,'lambda'=lambda)#TODO: tidy output
+
+	list('theta'=theta,'beta'=beta,'gamma'=gamma)#TODO: tidy output
 }

@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // lda_online_cpp
-List lda_online_cpp(IntegerVector doc_ids, IntegerVector terms, IntegerVector counts, int K, int K0, int passes, int batchsize, int maxiter, double tau_0, double kappa, double eta, double alpha, NumericMatrix refLambda);
-RcppExport SEXP _RefTM_lda_online_cpp(SEXP doc_idsSEXP, SEXP termsSEXP, SEXP countsSEXP, SEXP KSEXP, SEXP K0SEXP, SEXP passesSEXP, SEXP batchsizeSEXP, SEXP maxiterSEXP, SEXP tau_0SEXP, SEXP kappaSEXP, SEXP etaSEXP, SEXP alphaSEXP, SEXP refLambdaSEXP) {
+List lda_online_cpp(IntegerVector doc_ids, IntegerVector terms, IntegerVector counts, int K, int K0, int passes, int batchsize, int maxiter, double tau_0, double kappa, double alpha, NumericMatrix refBeta);
+RcppExport SEXP _lda_svi_lda_online_cpp(SEXP doc_idsSEXP, SEXP termsSEXP, SEXP countsSEXP, SEXP KSEXP, SEXP K0SEXP, SEXP passesSEXP, SEXP batchsizeSEXP, SEXP maxiterSEXP, SEXP tau_0SEXP, SEXP kappaSEXP, SEXP alphaSEXP, SEXP refBetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -27,20 +27,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
     Rcpp::traits::input_parameter< double >::type tau_0(tau_0SEXP);
     Rcpp::traits::input_parameter< double >::type kappa(kappaSEXP);
-    Rcpp::traits::input_parameter< double >::type eta(etaSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type refLambda(refLambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(lda_online_cpp(doc_ids, terms, counts, K, K0, passes, batchsize, maxiter, tau_0, kappa, eta, alpha, refLambda));
+    Rcpp::traits::input_parameter< NumericMatrix >::type refBeta(refBetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(lda_online_cpp(doc_ids, terms, counts, K, K0, passes, batchsize, maxiter, tau_0, kappa, alpha, refBeta));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_RefTM_lda_online_cpp", (DL_FUNC) &_RefTM_lda_online_cpp, 13},
+    {"_lda_svi_lda_online_cpp", (DL_FUNC) &_lda_svi_lda_online_cpp, 12},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_RefTM(DllInfo *dll) {
+RcppExport void R_init_lda_svi(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

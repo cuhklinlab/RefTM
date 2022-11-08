@@ -10,7 +10,7 @@ arma::rowvec dirichlet_expectation(const arma::rowvec &alpha){
 		alpha_sum += i;
 	}
 	for (int i=0;i<alpha.size();i++){
-		result[i]=boost::math::digamma(alpha[i]) - boost::math::digamma(alpha_sum);
+		result[i]=boost::math::digamma(alpha[i]);
 	}
 	return result;
 }
