@@ -1,3 +1,5 @@
+#' @export
+
 getbetaMLE <- function(data, cluster, offset, beta_ini, maxiter, thres, quiet){
   ## data is n by p
   ## cluster is the cluster membership matrix, length n. Take entries 1 to nCluster

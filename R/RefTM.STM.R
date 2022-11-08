@@ -1,3 +1,4 @@
+#' @export
 
 RefTM.STM <- function(documents, vocab, K,
                 prevalence=NULL, content=NULL, data=NULL,

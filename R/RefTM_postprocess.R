@@ -1,3 +1,5 @@
+#' @export
+
 RefTM_postprocess = function(object,k1,erase.BF = TRUE){
   if(class(object) == "list"){
     theta = object$theta
