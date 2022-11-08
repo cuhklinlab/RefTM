@@ -2,6 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 lda_online_cpp <- function(doc_ids, terms, counts, K, K0, passes, batchsize, maxiter, tau_0, kappa, alpha, refBeta) {
-    .Call(`_lda_svi_lda_online_cpp`, doc_ids, terms, counts, K, K0, passes, batchsize, maxiter, tau_0, kappa, alpha, refBeta)
+    .Call(`_RefTM_lda_online_cpp`, doc_ids, terms, counts, K, K0, passes, batchsize, maxiter, tau_0, kappa, alpha, refBeta)
 }
 
