@@ -3,7 +3,7 @@ R package for RefTM. Stochastic variational inference method is used to fit LDA 
 # Install
 ```
 install.packages("devtools")
-devtools::install_github("zzchr1s/RefTM")
+devtools::install_github("cuhklinlab/RefTM")
 ```
 # Functions
 This package includes following main functions:
